@@ -1,7 +1,5 @@
 # Week 7 · Four-modality RAG assistant (PDF, scanned PDF, audio, video)
 
-> **Publication status:** this folder is waiting for SIT/SMF approval and stays unpublished until both approve.
->
 > *Built for an SIT industrial-attachment case study. Not affiliated with or endorsed by SMF; all data is synthetic.*
 
 A grant-advisory assistant that answers questions about Singapore enterprise support schemes. It retrieves from text PDFs, scanned PDFs (OCR), audio and video (Whisper ASR), and answers with checked `[S#]` citations or abstains.
@@ -49,7 +47,7 @@ This is done once, by the owner only, because it needs the raw knowledge base.
 1. Add a Colab secret `HF_TOKEN` with **write** access.
 2. In the settings cell, set `BUILD = True`. Point `PROJECT_ROOT` at the folder that holds `knowledge_base/` and `eval/`; with `USE_DRIVE = True` it can sit in your Google Drive.
 3. Choose **Runtime → Run all**. This takes about 15–30 minutes and covers OCR, ASR, indexing, the evaluation and all experiments.
-4. The section 14 push cell creates the **private** dataset `tantg88888/smf-rag-demo-assets` and uploads:
+4. The section 14 push cell creates the **private** dataset `tantg101/smf-rag-demo-assets` and uploads:
    - `artifacts/chunks.json`, `chunk_embeddings.npy`, `faiss_index.bin`, `config.json`
    - `results/experiment_comparison.csv`, `experiment_comparison.png`, `chunk_size_sweep.csv`
    - `eval/test_questions.csv`

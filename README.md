@@ -15,7 +15,7 @@ Eight weeks of full-time applied AI training at the Singapore Institute of Techn
 
 \* Week 7's knowledge base belongs to an industry-partner case study and is kept private, so its demo runs only from the author's Colab.
 
-Trained models are hosted on Hugging Face ([huggingface.co/tantg88888](https://huggingface.co/tantg88888)), so the demos load them in seconds instead of retraining. Set `TRAIN = True` in a notebook to reproduce the full training run.
+Trained models are hosted on Hugging Face ([huggingface.co/tantg101](https://huggingface.co/tantg101)), so the demos load them in seconds instead of retraining. Set `TRAIN = True` in a notebook to reproduce the full training run.
 
 **NVIDIA Deep Learning Institute certificates:** Building AI Agents with Multimodal Models · Adding New Knowledge to LLMs · Generative AI with Diffusion Models
 

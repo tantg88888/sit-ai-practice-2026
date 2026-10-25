@@ -15,7 +15,7 @@ Flags marketplace listing photos that show an e-vaporiser (vape) so they can be 
    - P(vape) from both top models;
    - an **ALLOW** or **BLOCK (send to review)** decision at each model's tuned threshold.
 
-Demo mode needs no API keys. It downloads the two trained checkpoints, `manifest.json` and `metrics.json` from the Hugging Face Hub repo [`tantg88888/vape-image-moderation`](https://huggingface.co/tantg88888/vape-image-moderation).
+Demo mode needs no API keys. It downloads the two trained checkpoints, `manifest.json` and `metrics.json` from the Hugging Face Hub repo [`tantg101/vape-image-moderation`](https://huggingface.co/tantg101/vape-image-moderation).
 
 ## Results
 
@@ -63,7 +63,7 @@ The champion is chosen on validation only. Its test results at the default and t
    - `HF_TOKEN`: a Hugging Face token with **write** access. It is needed to publish.
    - `WANDB_API_KEY` (optional): turns on wandb logging.
 2. Set `TRAIN = True` in the first code cell. Choose a **T4 GPU** and click **Run all**. On a T4, a full run takes roughly 20–30 minutes; the ViT full fine-tune is the slow part.
-3. **Step 11b** uploads these files to `tantg88888/vape-image-moderation`, creating the repo if needed:
+3. **Step 11b** uploads these files to `tantg101/vape-image-moderation`, creating the repo if needed:
    - `<top-1 config>.pt` and `<top-2 config>.pt`: weights plus metadata (backbone, strategy, normalisation, class names and the tuned threshold);
    - `manifest.json`: the top-2 names, thresholds and test accuracy;
    - `metrics.json`: the test-set table, the champion's results at 0.5 and at the tuned threshold, and dataset sizes.

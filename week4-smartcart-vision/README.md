@@ -13,7 +13,7 @@ Upload one photo of a grocery counter and get back an itemised receipt in SGD. I
 3. Click **Runtime → Run all**. Leave `TRAIN = False` in the settings cell.
 4. After about 3–5 minutes, a public Gradio link appears in the last cell. Upload a photo or click a sample scene, press **Scan basket**, edit any line, then press **Recalculate**.
 
-Demo mode skips training. It downloads the trained artifacts from the Hugging Face Hub (`tantg88888/smartcart-vision`). The charts and tables saved from the original training run stay visible in the notebook.
+Demo mode skips training. It downloads the trained artifacts from the Hugging Face Hub (`tantg101/smartcart-vision`). The charts and tables saved from the original training run stay visible in the notebook.
 
 ## Results
 All numbers below were printed in the notebook during the recorded training run, which ran on a CPU runtime.
@@ -40,7 +40,7 @@ The cGAN result is a negative one: synthetic GAN images did not beat classical a
 This is a one-time step. It creates the Hugging Face repo that the demo downloads.
 1. Create a Hugging Face access token with **write** permission. In Colab, open 🔑 **Secrets** and add it as `HF_TOKEN`, with notebook access enabled.
 2. In the settings cell, set `TRAIN = True`, then run **Runtime → Run all**. The original notebook estimates about 45–60 minutes on a T4. For a quick smoke run, set `SC_FAST` to `'1'` in the same cell.
-3. The **Publish to Hugging Face** cell uploads these files to `tantg88888/smartcart-vision`: `detector.pt`, `head.onnx`, `head.int8.onnx`, `head_v2.pt`, `catalog_prices.csv`, `gallery_index.npy`, `gallery_meta.csv` (class names only), `manifest.json` (class list + detector confidence), `sample_scene.jpg`, and `hard_000.jpg`–`hard_002.jpg`.
+3. The **Publish to Hugging Face** cell uploads these files to `tantg101/smartcart-vision`: `detector.pt`, `head.onnx`, `head.int8.onnx`, `head_v2.pt`, `catalog_prices.csv`, `gallery_index.npy`, `gallery_meta.csv` (class names only), `manifest.json` (class list + detector confidence), `sample_scene.jpg`, and `hard_000.jpg`–`hard_002.jpg`.
 4. Set `TRAIN = False` again before the demo.
 
 ## Data

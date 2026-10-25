@@ -13,7 +13,7 @@ My role: <TODO: fill in>
 3. Go to **Runtime → Run all**. `TRAIN = False` is the default.
 4. After about 5–7 minutes, a public Gradio link appears at the bottom. Pick a sample question to see the base model (v0) and the fine-tuned model (v2) answer side by side.
 
-Demo mode installs Unsloth and loads the 4-bit base model together with the trained LoRA adapter from Hugging Face (`tantg88888/eldershield-llama3.2-3b-lora`). It skips training and evaluation and shows the scores recorded from the training run.
+Demo mode installs Unsloth and loads the 4-bit base model together with the trained LoRA adapter from Hugging Face (`tantg101/eldershield-llama3.2-3b-lora`). It skips training and evaluation and shows the scores recorded from the training run.
 
 ## Results
 The model was scored on 62 held-out probes, worded differently from the training questions: 30 recall, 16 unanswerable and 16 general-knowledge. All numbers come from one training run with a single seed (3407).
@@ -43,7 +43,7 @@ The model was scored on 62 held-out probes, worded differently from the training
 You only need to do this once, to create the Hugging Face repo that demo mode loads from.
 1. In Colab, open the key icon (**Secrets**) and add `HF_TOKEN`, a Hugging Face token with **write** access. Turn on notebook access.
 2. Set `TRAIN = True` in the first code cell, choose a T4 GPU (or better), and run **Runtime → Run all**.
-3. The notebook evaluates v0, trains with SFT, evaluates v1, trains with DPO and evaluates v2. A push cell then uploads `eldershield_v2/` to `tantg88888/eldershield-llama3.2-3b-lora` as a public repo. It contains:
+3. The notebook evaluates v0, trains with SFT, evaluates v1, trains with DPO and evaluates v2. A push cell then uploads `eldershield_v2/` to `tantg101/eldershield-llama3.2-3b-lora` as a public repo. It contains:
    - `adapter_config.json` and `adapter_model.safetensors` (the LoRA adapter)
    - the tokenizer files (`tokenizer.json`, `tokenizer_config.json` and related files, including the Llama-3.1 chat template)
    - a PEFT model-card `README.md`

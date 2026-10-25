@@ -1,7 +1,5 @@
 # Week 6 · Red-teaming and hardening a RAG chatbot
 
-> **Publication status:** this week was built with an industry partner (SMF) for an SIT industrial-attachment case study. It will be made public only after SIT and SMF approve.
->
 > *Built for an SIT industrial-attachment case study. Not affiliated with or endorsed by SMF; all data is synthetic.*
 
 A small RAG customer-service chatbot is attacked three ways (prompt injection, system-prompt / context extraction, knowledge-base poisoning). It is then hardened with four explainable defence layers, and the Attack Success Rate is measured before and after.

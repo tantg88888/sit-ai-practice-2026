@@ -12,7 +12,7 @@ Listens to a (fictional) industrial site, classifies safety-relevant sounds with
 ## Run the demo
 1. Open **`B_live_demo.ipynb`** in Colab (badge above) and pick **Runtime → Change runtime type → T4 GPU**. CPU also works, but more slowly.
 2. Optional: add a Colab secret `GROQ_API_KEY` (key icon in the sidebar, with notebook access switched on). With the key, the LLM writes each alert live (MODE `LIVE`). Without it, the notebook runs in MODE `SAFE`: the model and the severity rules still run live, and the alert text comes from the cache that Notebook A built.
-3. **Runtime → Run all.** The model and demo files download from the Hugging Face Hub (`tantg88888/sentry10-ast-esc50`, about 350 MB). After about **3–5 minutes**, a public Gradio link appears under the last cell.
+3. **Runtime → Run all.** The model and demo files download from the Hugging Face Hub (`tantg101/sentry10-ast-esc50`, about 350 MB). After about **3–5 minutes**, a public Gradio link appears under the last cell.
 4. Open the link **in a new tab**. The browser won't give the microphone to a page inside the Colab frame. Press **🔊 test the PA**, then **▶ NEXT** through the 8-beat night shift. You can also make the sound the NEXT button points at into the microphone, or drop an audio file into the upload box.
 
 ## Results
@@ -43,7 +43,7 @@ What the numbers say:
 This is a one-time step. The demo only needs the published Hub repo.
 1. In Colab, add a secret **`HF_TOKEN`** with **write** access. `GROQ_API_KEY` is optional; without it, template alert text is cached.
 2. Open **`A_train_and_evaluate.ipynb`** on a **T4 GPU**. Check that `TRAIN = True` (the default) and that `HF_USER` in the first code cell is your username.
-3. **Runtime → Run all** (about 25–35 minutes). This downloads ESC-50, fine-tunes the model, evaluates it, builds the demo night, caches the alerts and renders the PA audio. The **Step 8b** cell then pushes everything to `HF_REPO = tantg88888/sentry10-ast-esc50`:
+3. **Runtime → Run all** (about 25–35 minutes). This downloads ESC-50, fine-tunes the model, evaluates it, builds the demo night, caches the alerts and renders the PA audio. The **Step 8b** cell then pushes everything to `HF_REPO = tantg101/sentry10-ast-esc50`:
    - repo root: `model.safetensors`, `config.json` (with the `id2label` class names), `preprocessor_config.json`, `README.md`
    - `artifacts/demo_cache.json` (metrics, events and cached alerts, with local paths removed)
    - `artifacts/demo_audio/ev_00…ev_07_*.wav` (8 ESC-50 fold-5 clips), `artifacts/demo_audio/pa/pa_*.mp3` (pre-rendered announcements)
