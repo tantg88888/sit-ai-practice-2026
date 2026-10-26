@@ -5,7 +5,6 @@ Upload one photo of a grocery counter and get back an itemised receipt in SGD. I
 [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/tantg88888/sit-ai-practice-2026/blob/main/week4-smartcart-vision/notebook.ipynb)
 
 **Area:** Computer vision · **Format:** 4-person team project · SIT Graduate Certificate in AI Practice, 2026
-**My role:** <TODO: fill in>
 
 ## Run the demo
 1. Click **Open in Colab** above.

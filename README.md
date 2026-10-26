@@ -19,4 +19,4 @@ Trained models are hosted on Hugging Face ([huggingface.co/tantg101](https://hug
 
 **NVIDIA Deep Learning Institute certificates:** Building AI Agents with Multimodal Models · Adding New Knowledge to LLMs · Generative AI with Diffusion Models
 
-> Most projects were team projects; each README says so and describes my part. Data that belongs to industry partners is not published; only public datasets or synthetic examples are included.
+> Most projects were team projects; each README says so; they were team efforts throughout. Data that belongs to industry partners is not published; only public datasets or synthetic examples are included.

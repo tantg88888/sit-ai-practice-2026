@@ -7,7 +7,6 @@ Listens to a (fictional) industrial site, classifies safety-relevant sounds with
 [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/tantg88888/sit-ai-practice-2026/blob/main/week8-acoustic-safety-monitor/A_train_and_evaluate.ipynb) **← training and evaluation (Notebook A)**
 
 **Format:** 4-person team project (Team 10), Speech Processing and Multimodal AI, Week 8, SIT Graduate Certificate in AI Practice, 2026
-**My role:** <TODO: fill in>
 
 ## Run the demo
 1. Open **`B_live_demo.ipynb`** in Colab (badge above) and pick **Runtime → Change runtime type → T4 GPU**. CPU also works, but more slowly.

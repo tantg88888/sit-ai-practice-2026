@@ -5,7 +5,6 @@ Predicts the resale price of a Singapore HDB flat and turns it into a lender-vie
 [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/tantg88888/sit-ai-practice-2026/blob/main/week1-hdb-resale-price-prediction/notebook.ipynb)
 
 **Team:** group capstone (Group 7), SIT ICT6001 Week 1.
-My role: <TODO: fill in>
 
 ## Run the demo
 1. Click **Open in Colab** above.
