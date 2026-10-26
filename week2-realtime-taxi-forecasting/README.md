@@ -21,6 +21,5 @@ Live [data.gov.sg](https://data.gov.sg) APIs (taxi availability, 2-hour weather 
 ## Stack
 Airflow · Kafka · Flink · DuckDB · geopandas · scikit-learn · MLflow · FastAPI · Docker Compose
 
-## Notebook
-Put the Colab notebook in this folder (`File → Download → Download .ipynb` in Colab), then link it here:
-[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/tantg88888/sit-ai-practice-2026/blob/main/week2-realtime-taxi-forecasting/notebook.ipynb)
+## Code
+This project ran as a multi-container stack (Airflow, Kafka, Flink, MLflow, FastAPI) on Docker Compose in the course lab environment, not in Colab, so there is no one-click demo. The code is not published here.
