@@ -1,0 +1,517 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Day 4 Taxi Prediction Dashboard</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    :root {
+      --bg: #f5f7fa;
+      --panel: #ffffff;
+      --text: #172033;
+      --muted: #647084;
+      --border: #dce3ec;
+      --blue: #2563eb;
+      --teal: #0f766e;
+      --amber: #b45309;
+      --red: #b91c1c;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      font-family: Arial, Helvetica, sans-serif;
+    }
+
+    header {
+      background: #172033;
+      color: white;
+      padding: 18px 24px;
+    }
+
+    header h1 {
+      margin: 0 0 4px;
+      font-size: 24px;
+      letter-spacing: 0;
+    }
+
+    header p {
+      margin: 0;
+      color: #cbd5e1;
+      font-size: 14px;
+    }
+
+    main {
+      max-width: 1180px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+
+    .toolbar,
+    .metric,
+    .panel {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+    }
+
+    .toolbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: end;
+      gap: 12px;
+      padding: 14px;
+      margin-bottom: 14px;
+    }
+
+    .actions {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    label {
+      display: block;
+      color: var(--muted);
+      font-size: 12px;
+      margin-bottom: 6px;
+    }
+
+    select,
+    button {
+      height: 38px;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      background: white;
+      color: var(--text);
+      font-size: 14px;
+      padding: 0 12px;
+    }
+
+    button {
+      border-color: var(--blue);
+      background: var(--blue);
+      color: white;
+      cursor: pointer;
+      font-weight: 700;
+    }
+
+    button.secondary {
+      border-color: var(--teal);
+      background: var(--teal);
+    }
+
+    button.light {
+      border-color: var(--border);
+      background: white;
+      color: var(--text);
+    }
+
+    button:disabled {
+      opacity: 0.65;
+      cursor: wait;
+    }
+
+    .metrics {
+      display: grid;
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+      gap: 12px;
+      margin-bottom: 14px;
+    }
+
+    .metric {
+      padding: 14px;
+      min-height: 96px;
+    }
+
+    .metric span {
+      display: block;
+      color: var(--muted);
+      font-size: 12px;
+      margin-bottom: 8px;
+    }
+
+    .metric strong {
+      display: block;
+      font-size: 24px;
+      overflow-wrap: anywhere;
+    }
+
+    .metric.prediction strong { color: var(--amber); }
+    .metric.model strong { color: var(--teal); font-size: 18px; }
+
+    .layout {
+      display: grid;
+      grid-template-columns: minmax(0, 2fr) minmax(300px, 1fr);
+      gap: 14px;
+    }
+
+    .panel {
+      padding: 14px;
+      min-width: 0;
+    }
+
+    .panel h2 {
+      margin: 0 0 12px;
+      font-size: 17px;
+    }
+
+    .chart-wrap {
+      height: 360px;
+    }
+
+    pre {
+      margin: 0;
+      background: #111827;
+      color: #e5e7eb;
+      border-radius: 8px;
+      padding: 12px;
+      overflow: auto;
+      font-size: 12px;
+      line-height: 1.45;
+      max-height: 360px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 12px;
+      font-size: 13px;
+    }
+
+    th,
+    td {
+      border-bottom: 1px solid var(--border);
+      padding: 8px 6px;
+      text-align: left;
+    }
+
+    th {
+      color: var(--muted);
+      font-size: 11px;
+      text-transform: uppercase;
+    }
+
+    .status {
+      color: var(--muted);
+      font-size: 13px;
+      margin-top: 10px;
+      min-height: 18px;
+    }
+
+    .error { color: var(--red); }
+
+    @media (max-width: 900px) {
+      .toolbar,
+      .metrics,
+      .layout {
+        display: grid;
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Taxi Availability 2h Prediction</h1>
+    <p>Dashboard data comes from the dbt serving mart. Predictions come from the MLflow champion model.</p>
+  </header>
+
+  <main>
+    <section class="toolbar">
+      <div>
+        <label for="areaSelect">Planning area</label>
+        <select id="areaSelect"></select>
+      </div>
+      <div class="actions">
+        <button id="predictButton">Predict 2h</button>
+        <button id="refreshButton" class="secondary">Collect + rebuild mart</button>
+        <button id="reloadButton" class="light">Reload model</button>
+      </div>
+    </section>
+
+    <section class="metrics">
+      <div class="metric">
+        <span>Current taxis</span>
+        <strong id="currentTaxi">-</strong>
+      </div>
+      <div class="metric">
+        <span>2h forecast</span>
+        <strong id="forecast">-</strong>
+      </div>
+      <div class="metric">
+        <span>Rainfall 5 min</span>
+        <strong id="rainfall">-</strong>
+      </div>
+      <div class="metric prediction">
+        <span>Predicted taxis in 2h</span>
+        <strong id="prediction">-</strong>
+      </div>
+      <div class="metric model">
+        <span>Model</span>
+        <strong id="modelName">-</strong>
+      </div>
+    </section>
+
+    <section class="layout">
+      <div class="panel">
+        <h2>Actual Taxi Availability And 2h Prediction</h2>
+        <div class="chart-wrap">
+          <canvas id="taxiChart"></canvas>
+        </div>
+        <div class="status" id="statusText"></div>
+        <table>
+          <thead>
+            <tr>
+              <th>Timestamp</th>
+              <th>Taxi count</th>
+              <th>Forecast</th>
+              <th>Rainfall</th>
+            </tr>
+          </thead>
+          <tbody id="historyBody"></tbody>
+        </table>
+      </div>
+      <div class="panel">
+        <h2>Latest API Response</h2>
+        <pre id="details">{}</pre>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    const areaSelect = document.getElementById("areaSelect");
+    const currentTaxi = document.getElementById("currentTaxi");
+    const forecast = document.getElementById("forecast");
+    const rainfall = document.getElementById("rainfall");
+    const prediction = document.getElementById("prediction");
+    const modelName = document.getElementById("modelName");
+    const details = document.getElementById("details");
+    const statusText = document.getElementById("statusText");
+    const historyBody = document.getElementById("historyBody");
+    const predictButton = document.getElementById("predictButton");
+    const refreshButton = document.getElementById("refreshButton");
+    const reloadButton = document.getElementById("reloadButton");
+    let taxiChart = null;
+    let latestPrediction = null;
+
+    async function fetchJson(url, options = {}) {
+      const response = await fetch(url, options);
+      if (!response.ok) {
+        const body = await response.text();
+        throw new Error(`${response.status} ${body}`);
+      }
+      return response.json();
+    }
+
+    function shortTime(value) {
+      const date = new Date(value);
+      if (Number.isNaN(date.getTime())) return value;
+      return date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+    }
+
+    function addHours(value, hours) {
+      return new Date(new Date(value).getTime() + hours * 60 * 60 * 1000);
+    }
+
+    function toIsoMinute(date) {
+      return date.toISOString();
+    }
+
+    function renderModel(model) {
+      const label = model.model_name
+        ? `${model.model_name}@${model.model_alias || "alias"}`
+        : model.model_uri || "-";
+      modelName.textContent = label;
+    }
+
+    async function loadAreas() {
+      const rows = await fetchJson("/api/areas");
+      areaSelect.innerHTML = rows.map(
+        row => `<option value="${row.planning_area}">${row.planning_area}</option>`
+      ).join("");
+      areaSelect.value = rows.some(row => row.planning_area === "ANG MO KIO")
+        ? "ANG MO KIO"
+        : rows[0].planning_area;
+    }
+
+    async function loadDashboard() {
+      const area = areaSelect.value;
+      const data = await fetchJson(`/api/dashboard-data?area=${encodeURIComponent(area)}&limit=200`);
+      const latest = data.latest;
+      currentTaxi.textContent = latest.current_taxi_count;
+      forecast.textContent = latest.forecast_2h || "-";
+      rainfall.textContent = Number(latest.current_rainfall_5min_mm || 0).toFixed(1);
+      renderModel(data.model);
+      details.textContent = JSON.stringify(data, null, 2);
+
+      const latestTime = new Date(latest.timestamp);
+      const windowStart = new Date(latestTime.getTime() - 6 * 60 * 60 * 1000);
+      const windowEnd = addHours(latest.timestamp, 2);
+      const history = (data.history || []).filter(row => {
+        const rowTime = new Date(row.timestamp);
+        return rowTime >= windowStart && rowTime <= latestTime;
+      });
+      historyBody.innerHTML = history.slice(-10).reverse().map(row => `
+        <tr>
+          <td>${row.timestamp}</td>
+          <td>${row.current_taxi_count}</td>
+          <td>${row.forecast_2h || "-"}</td>
+          <td>${Number(row.current_rainfall_5min_mm || 0).toFixed(1)}</td>
+        </tr>
+      `).join("");
+
+      const chartPoints = history.map(row => ({
+        timestamp: row.timestamp,
+        actual: row.current_taxi_count,
+        predicted: null,
+      }));
+
+      chartPoints.push({
+        timestamp: latest.timestamp,
+        actual: null,
+        predicted: null,
+      });
+      chartPoints.push({
+        timestamp: toIsoMinute(windowEnd),
+        actual: null,
+        predicted: null,
+      });
+
+      const savedPredictions = data.predictions || [];
+      savedPredictions.forEach(row => {
+        if (!row.prediction_target_timestamp) return;
+        chartPoints.push({
+          timestamp: row.prediction_target_timestamp,
+          actual: null,
+          predicted: row.predicted_taxi_count_2h,
+        });
+      });
+
+      chartPoints.sort((left, right) => new Date(left.timestamp) - new Date(right.timestamp));
+      const labels = [];
+      const actualByTime = new Map();
+      const predictedByTime = new Map();
+      chartPoints.forEach(point => {
+        if (!labels.includes(point.timestamp)) labels.push(point.timestamp);
+        if (point.actual !== null && point.actual !== undefined) {
+          actualByTime.set(point.timestamp, point.actual);
+        }
+        if (point.predicted !== null && point.predicted !== undefined) {
+          predictedByTime.set(point.timestamp, point.predicted);
+        }
+      });
+      const values = labels.map(label => actualByTime.get(label) ?? null);
+      const predictedValues = labels.map(label => predictedByTime.get(label) ?? null);
+      if (taxiChart) taxiChart.destroy();
+      taxiChart = new Chart(document.getElementById("taxiChart"), {
+        type: "line",
+        data: {
+          labels,
+          datasets: [{
+            label: `${data.area} actual taxi count`,
+            data: values,
+            borderColor: "#2563eb",
+            backgroundColor: "rgba(37, 99, 235, 0.12)",
+            tension: 0.25,
+            fill: true
+          }, {
+            label: "2h prediction",
+            data: predictedValues,
+            borderColor: "#b45309",
+            backgroundColor: "#b45309",
+            pointRadius: 6,
+            pointHoverRadius: 7,
+            showLine: false
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          scales: {
+            x: {
+              ticks: {
+                maxTicksLimit: 8,
+                callback: function(value) {
+                  return shortTime(this.getLabelForValue(value));
+                }
+              }
+            }
+          }
+        }
+      });
+    }
+
+    async function predict() {
+      predictButton.disabled = true;
+      statusText.textContent = "Calling /api/model/predict-2h ...";
+      try {
+        const area = areaSelect.value;
+        const result = await fetchJson(`/api/model/predict-2h?area=${encodeURIComponent(area)}`);
+        latestPrediction = result;
+        prediction.textContent = result.predicted_taxi_count_2h;
+        renderModel(result.model);
+        details.textContent = JSON.stringify(result, null, 2);
+        statusText.textContent = `Prediction target: ${result.prediction_target_timestamp}`;
+        await loadDashboard();
+      } catch (error) {
+        statusText.innerHTML = `<span class="error">Prediction failed. Check MLflow and champion model.</span>`;
+        details.textContent = String(error);
+      } finally {
+        predictButton.disabled = false;
+      }
+    }
+
+    async function rebuildMart() {
+      refreshButton.disabled = true;
+      statusText.textContent = "Collecting live data and rebuilding dbt mart ...";
+      try {
+        const result = await fetchJson("/api/pipeline/run-once", { method: "POST" });
+        details.textContent = JSON.stringify(result, null, 2);
+        statusText.textContent = "dbt serving mart rebuilt.";
+        await loadDashboard();
+      } catch (error) {
+        statusText.innerHTML = `<span class="error">Pipeline failed. Check dbt and collector logs.</span>`;
+        details.textContent = String(error);
+      } finally {
+        refreshButton.disabled = false;
+      }
+    }
+
+    async function reloadModel() {
+      reloadButton.disabled = true;
+      statusText.textContent = "Reloading MLflow champion model ...";
+      try {
+        const result = await fetchJson("/api/model/reload", { method: "POST" });
+        renderModel(result);
+        details.textContent = JSON.stringify(result, null, 2);
+        statusText.textContent = "Model reloaded.";
+      } catch (error) {
+        statusText.innerHTML = `<span class="error">Model reload failed.</span>`;
+        details.textContent = String(error);
+      } finally {
+        reloadButton.disabled = false;
+      }
+    }
+
+    areaSelect.addEventListener("change", () => {
+      prediction.textContent = "-";
+      latestPrediction = null;
+      loadDashboard();
+    });
+    predictButton.addEventListener("click", predict);
+    refreshButton.addEventListener("click", rebuildMart);
+    reloadButton.addEventListener("click", reloadModel);
+    setInterval(loadDashboard, 120000);
+
+    loadAreas().then(loadDashboard).catch(error => {
+      statusText.innerHTML = `<span class="error">Dashboard failed to load.</span>`;
+      details.textContent = String(error);
+    });
+  </script>
+</body>
+</html>

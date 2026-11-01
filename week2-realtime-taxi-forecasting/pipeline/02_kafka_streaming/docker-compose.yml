@@ -1,0 +1,179 @@
+services:
+  kafka:
+    image: apache/kafka:3.9.1
+    container_name: day_3_kafka
+    ports:
+      - "9092:9092"
+    environment:
+      KAFKA_NODE_ID: "1"
+      KAFKA_PROCESS_ROLES: "broker,controller"
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: "CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT"
+      KAFKA_ADVERTISED_LISTENERS: "PLAINTEXT_HOST://localhost:9092,PLAINTEXT://day_3_kafka:19092"
+      KAFKA_LISTENERS: "CONTROLLER://:29093,PLAINTEXT_HOST://:9092,PLAINTEXT://:19092"
+      KAFKA_INTER_BROKER_LISTENER_NAME: "PLAINTEXT"
+      KAFKA_CONTROLLER_LISTENER_NAMES: "CONTROLLER"
+      KAFKA_CONTROLLER_QUORUM_VOTERS: "1@day_3_kafka:29093"
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: "1"
+      KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: "0"
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: "1"
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: "1"
+      CLUSTER_ID: "4L6g3nShT-eMCtK--X86sw"
+
+  kafka-init:
+    image: apache/kafka:3.9.1
+    container_name: day_3_kafka-init
+    depends_on:
+      - kafka
+    command:
+      - /bin/bash
+      - -c
+      - |
+        until /opt/kafka/bin/kafka-topics.sh --bootstrap-server day_3_kafka:19092 --list >/dev/null 2>&1; do
+          echo "Waiting for Kafka..."
+          sleep 2
+        done
+        /opt/kafka/bin/kafka-topics.sh \
+          --bootstrap-server day_3_kafka:19092 \
+          --create \
+          --if-not-exists \
+          --topic taxi_weather_events \
+          --partitions 3 \
+          --replication-factor 1
+        /opt/kafka/bin/kafka-topics.sh \
+          --bootstrap-server day_3_kafka:19092 \
+          --create \
+          --if-not-exists \
+          --topic taxi_weather_incremental_events \
+          --partitions 1 \
+          --replication-factor 1
+        /opt/kafka/bin/kafka-topics.sh \
+          --bootstrap-server day_3_kafka:19092 \
+          --describe \
+          --topic taxi_weather_events
+        /opt/kafka/bin/kafka-topics.sh \
+          --bootstrap-server day_3_kafka:19092 \
+          --describe \
+          --topic taxi_weather_incremental_events
+
+  producer:
+    build:
+      context: .
+      dockerfile: Dockerfile.client
+    image: day_3_taxi-weather-kafka-client
+    container_name: day_3_producer
+    depends_on:
+      kafka-init:
+        condition: service_completed_successfully
+    environment:
+      KAFKA_BOOTSTRAP_SERVERS: "day_3_kafka:19092"
+      KAFKA_TOPIC: "taxi_weather_events"
+      TAXI_API_URL: "https://api.data.gov.sg/v1/transport/taxi-availability"
+      WEATHER_API_URL: "https://api.data.gov.sg/v1/environment/2-hour-weather-forecast"
+      POLL_INTERVAL_SECONDS: "15"
+
+  consumer:
+    build:
+      context: .
+      dockerfile: Dockerfile.client
+    image: day_3_taxi-weather-kafka-client
+    container_name: day_3_consumer
+    command: ["python", "consumer.py"]
+    depends_on:
+      kafka-init:
+        condition: service_completed_successfully
+    environment:
+      KAFKA_BOOTSTRAP_SERVERS: "day_3_kafka:19092"
+      KAFKA_TOPIC: "taxi_weather_events"
+      KAFKA_TOPICS: "taxi_weather_events,taxi_weather_incremental_events"
+      DATABASE_PATH: "data/streaming_ingestion.duckdb"
+    volumes:
+      - ./data:/app/data
+
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile.api
+    image: day_3_taxi-weather-api
+    container_name: day_3_api
+    depends_on:
+      - consumer
+    environment:
+      DATABASE_PATH: "data/streaming_ingestion.duckdb"
+    volumes:
+      - ./data:/app/data
+    ports:
+      - "8003:8000"
+
+  dashboard:
+    build:
+      context: .
+      dockerfile: Dockerfile.dashboard
+    image: day_3_taxi-weather-dashboard
+    container_name: day_3_dashboard
+    depends_on:
+      - api
+    environment:
+      TAXI_API_URL: "http://api:8000/taxi-latest"
+      RAINFALL_API_URL: "https://api-open.data.gov.sg/v2/real-time/api/rainfall"
+      GEOJSON_PATH: "reference/planning-areas.geojson"
+      DATA_DIR: "data"
+    volumes:
+      - ./data:/app/data
+      - ../../shared_assets/MasterPlan2019SubzoneBoundaryNoSeaGEOJSON.geojson:/app/reference/planning-areas.geojson:ro
+    ports:
+      - "8502:8000"
+
+  flink-jobmanager:
+    build:
+      context: .
+      dockerfile: Dockerfile.flink-sql
+    image: day_3_flink-sql
+    container_name: day_3_flink-jobmanager
+    command: jobmanager
+    depends_on:
+      kafka-init:
+        condition: service_completed_successfully
+    environment:
+      FLINK_PROPERTIES: |
+        jobmanager.rpc.address: flink-jobmanager
+    ports:
+      - "8081:8081"
+    profiles:
+      - flink
+
+  flink-taskmanager:
+    image: day_3_flink-sql
+    container_name: day_3_flink-taskmanager
+    command: taskmanager
+    depends_on:
+      - flink-jobmanager
+    environment:
+      FLINK_PROPERTIES: |
+        jobmanager.rpc.address: flink-jobmanager
+        taskmanager.numberOfTaskSlots: 2
+    profiles:
+      - flink
+
+  flink-sql-runner:
+    image: day_3_flink-sql
+    container_name: day_3_flink-sql-runner
+    command: >
+      bash -c "
+        until /opt/flink/bin/flink list --jobmanager flink-jobmanager:8081 >/dev/null 2>&1; do
+          echo 'Waiting for Flink JobManager...';
+          sleep 3;
+        done;
+        /opt/flink/bin/sql-client.sh -f /opt/flink/sql/incremental_taxi_summary.sql
+      "
+    depends_on:
+      kafka-init:
+        condition: service_completed_successfully
+      flink-jobmanager:
+        condition: service_started
+      flink-taskmanager:
+        condition: service_started
+    environment:
+      FLINK_PROPERTIES: |
+        jobmanager.rpc.address: flink-jobmanager
+    profiles:
+      - flink

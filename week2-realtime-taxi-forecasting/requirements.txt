@@ -1,0 +1,9 @@
+# Local run of notebook.ipynb (Colab installs what it needs automatically)
+pandas
+numpy
+requests
+matplotlib
+scikit-learn
+geopandas
+duckdb
+gradio

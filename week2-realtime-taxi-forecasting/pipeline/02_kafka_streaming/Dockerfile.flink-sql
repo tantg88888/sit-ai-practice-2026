@@ -1,0 +1,15 @@
+FROM flink:1.19.1-scala_2.12-java17
+
+ADD https://repo1.maven.org/maven2/org/apache/flink/flink-sql-connector-kafka/3.2.0-1.19/flink-sql-connector-kafka-3.2.0-1.19.jar /opt/flink/lib/
+ADD https://repo1.maven.org/maven2/org/apache/flink/flink-connector-kafka/3.2.0-1.19/flink-connector-kafka-3.2.0-1.19.jar /opt/flink/lib/
+ADD https://repo1.maven.org/maven2/org/apache/kafka/kafka-clients/3.4.0/kafka-clients-3.4.0.jar /opt/flink/lib/
+ADD https://repo.maven.apache.org/maven2/org/apache/flink/flink-sql-json/1.19.1/flink-sql-json-1.19.1.jar /opt/flink/lib/
+
+# Docker ADD from a URL can leave these jars readable only by root. The Flink
+# JVM runs as the flink user, so make connector jars world-readable.
+RUN chmod 644 /opt/flink/lib/flink-sql-connector-kafka-3.2.0-1.19.jar \
+    /opt/flink/lib/flink-connector-kafka-3.2.0-1.19.jar \
+    /opt/flink/lib/kafka-clients-3.4.0.jar \
+    /opt/flink/lib/flink-sql-json-1.19.1.jar
+
+COPY flink ./sql

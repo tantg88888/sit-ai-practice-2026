@@ -1,0 +1,38 @@
+services:
+  day4-mlops:
+    build: .
+    container_name: day4-mlops
+    working_dir: /workspace
+    ports:
+      - "5000:5000"
+      - "8000:8000"
+      - "8001:8001"
+    volumes:
+      - .:/workspace
+      - .:/mlflow
+      # Planning-area GeoJSON: the single copy in <project root>/shared_assets.
+      - ../../shared_assets:/shared_assets:ro
+      # The mart dashboard (mart_dashboard_api.py) also expects the course's live
+      # feature-mart pipeline (dbt project + run_live_feature_pipeline.py) mounted at
+      # /clean. That folder is NOT part of this repository; mount your own copy here:
+      # - /path/to/clean:/clean
+    environment:
+      MLFLOW_TRACKING_URI: "http://127.0.0.1:5000"
+      MLFLOW_MODEL_URI: "models:/taxi_availability_2h_model@champion"
+      MLFLOW_HTTP_REQUEST_TIMEOUT: "10"
+      MLFLOW_SERVER_ALLOWED_HOSTS: "127.0.0.1:*,localhost:*,host.docker.internal:*,day4-mlops:*"
+      DAY4_SHARED_ASSETS_DIR: "/shared_assets"
+      # Optional data.gov.sg key for live_data_scheduler.py (export it in your shell
+      # or put it in a git-ignored .env next to this file). Never commit a key.
+      DATA_GOV_API_KEY: "${DATA_GOV_API_KEY:-}"
+    command:
+      - mlflow
+      - server
+      - --host
+      - 0.0.0.0
+      - --port
+      - "5000"
+      - --backend-store-uri
+      - sqlite:////workspace/mlflow.db
+      - --default-artifact-root
+      - /workspace/artifacts

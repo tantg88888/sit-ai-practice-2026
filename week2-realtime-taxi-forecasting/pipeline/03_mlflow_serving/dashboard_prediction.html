@@ -1,0 +1,630 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Day 4.2 Prediction Dashboard</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    :root {
+      --bg: #f6f7fb;
+      --panel: #ffffff;
+      --text: #18212f;
+      --muted: #5f6b7a;
+      --border: #dfe4ec;
+      --accent: #b45309;
+      --accent-soft: #fff7ed;
+      --blue: #2563eb;
+      --green: #0f766e;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      font-family: Arial, Helvetica, sans-serif;
+    }
+
+    header {
+      background: #1f2937;
+      color: white;
+      padding: 22px 28px;
+    }
+
+    header h1 {
+      margin: 0 0 6px;
+      font-size: 28px;
+      font-weight: 700;
+    }
+
+    header p {
+      margin: 0;
+      color: #d1d5db;
+      font-size: 15px;
+    }
+
+    main {
+      max-width: 1180px;
+      margin: 0 auto;
+      padding: 24px;
+    }
+
+    .toolbar, .panel {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 18px;
+    }
+
+    .toolbar {
+      display: flex;
+      gap: 16px;
+      align-items: end;
+      justify-content: space-between;
+      margin-bottom: 18px;
+    }
+
+    label {
+      display: block;
+      color: var(--muted);
+      font-size: 13px;
+      margin-bottom: 6px;
+    }
+
+    select, button {
+      height: 40px;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      background: white;
+      color: var(--text);
+      font-size: 15px;
+      padding: 0 12px;
+    }
+
+    button {
+      background: var(--accent);
+      color: white;
+      border-color: var(--accent);
+      cursor: pointer;
+      font-weight: 700;
+    }
+
+    button.secondary {
+      background: var(--blue);
+      border-color: var(--blue);
+    }
+
+    button:disabled {
+      opacity: 0.65;
+      cursor: not-allowed;
+    }
+
+    .link-button {
+      display: inline-flex;
+      align-items: center;
+      height: 40px;
+      padding: 0 12px;
+      border-radius: 6px;
+      background: #eef2ff;
+      color: #3730a3;
+      text-decoration: none;
+      font-weight: 700;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+      gap: 16px;
+      margin-bottom: 18px;
+    }
+
+    .metric {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 18px;
+    }
+
+    .metric span {
+      color: var(--muted);
+      display: block;
+      font-size: 13px;
+      margin-bottom: 8px;
+    }
+
+    .metric strong {
+      font-size: 28px;
+    }
+
+    .prediction {
+      background: var(--accent-soft);
+      border-color: #fed7aa;
+    }
+
+    .prediction strong {
+      color: var(--accent);
+    }
+
+    .model-status {
+      background: #eff6ff;
+      border-color: #bfdbfe;
+    }
+
+    .model-status strong {
+      color: var(--blue);
+      font-size: 22px;
+    }
+
+    .two-column {
+      display: grid;
+      grid-template-columns: minmax(0, 2fr) minmax(280px, 1fr);
+      gap: 18px;
+    }
+
+    .note, pre {
+      color: var(--muted);
+      line-height: 1.45;
+    }
+
+    pre {
+      background: #111827;
+      color: #e5e7eb;
+      border-radius: 8px;
+      padding: 14px;
+      overflow: auto;
+      font-size: 13px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 16px;
+      font-size: 14px;
+    }
+
+    th, td {
+      border-bottom: 1px solid var(--border);
+      padding: 10px 8px;
+      text-align: left;
+    }
+
+    th {
+      color: var(--muted);
+      font-size: 12px;
+      text-transform: uppercase;
+    }
+
+    canvas {
+      max-height: 320px;
+    }
+
+    .weather-axis {
+      display: grid;
+      grid-template-columns: 120px minmax(0, 1fr);
+      gap: 10px;
+      align-items: center;
+      margin-top: 12px;
+      font-size: 13px;
+    }
+
+    .axis-label {
+      color: var(--muted);
+      font-weight: 700;
+    }
+
+    .weather-chips {
+      display: grid;
+      grid-template-columns: repeat(6, minmax(0, 1fr));
+      gap: 6px;
+    }
+
+    .weather-chip {
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      background: #f8fafc;
+      padding: 7px 8px;
+      min-height: 42px;
+      overflow: hidden;
+    }
+
+    .weather-chip span {
+      display: block;
+      color: var(--muted);
+      font-size: 11px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .weather-chip strong {
+      display: block;
+      color: var(--text);
+      font-size: 12px;
+      margin-top: 3px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    @media (max-width: 900px) {
+      .toolbar, .grid, .two-column {
+        grid-template-columns: 1fr;
+        display: grid;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Dashboard With MLflow Model Prediction</h1>
+    <p>Same dashboard data, now connected to a registered model through FastAPI.</p>
+  </header>
+
+  <main>
+    <section class="toolbar">
+      <div>
+        <label for="areaSelect">Planning area</label>
+        <select id="areaSelect"></select>
+      </div>
+      <div>
+        <button id="predictButton">Predict 2h taxi count</button>
+        <button class="secondary" id="reloadModelButton">Reload champion model</button>
+        <button id="refreshButton">Refresh data</button>
+        <a class="link-button" href="/review">Back to review page</a>
+      </div>
+    </section>
+
+    <section class="grid">
+      <div class="metric">
+        <span>Current taxi count</span>
+        <strong id="taxiCount">-</strong>
+      </div>
+      <div class="metric">
+        <span>Current weather forecast</span>
+        <strong id="forecast">-</strong>
+      </div>
+      <div class="metric">
+        <span>Latest timestamp</span>
+        <strong id="timestamp">-</strong>
+      </div>
+      <div class="metric prediction">
+        <span>Predicted taxi count in 2h</span>
+        <strong id="prediction">-</strong>
+      </div>
+      <div class="metric model-status">
+        <span>Served model</span>
+        <strong id="modelStatus">-</strong>
+      </div>
+    </section>
+
+    <section class="two-column">
+      <div class="panel">
+        <h2>Taxi Availability Over Time</h2>
+        <canvas id="taxiChart"></canvas>
+        <div class="weather-axis">
+          <div class="axis-label">Current weather</div>
+          <div class="weather-chips" id="currentWeatherAxis"></div>
+        </div>
+        <div class="weather-axis">
+          <div class="axis-label">Predicted weather</div>
+          <div class="weather-chips" id="forecastWeatherAxis"></div>
+        </div>
+        <table>
+          <thead>
+            <tr>
+              <th>Timestamp</th>
+              <th>Taxi Count</th>
+              <th>Current Weather</th>
+              <th>Predicted Weather</th>
+            </tr>
+          </thead>
+          <tbody id="historyBody"></tbody>
+        </table>
+      </div>
+
+      <div class="panel">
+        <h2>Prediction Request</h2>
+        <p class="note">
+          The API collects the latest taxi and weather records, creates the same
+          feature columns used during training, loads the champion model from
+          MLflow, and returns one prediction.
+        </p>
+        <pre id="predictionDetails">Click the prediction button to call the model.</pre>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    const areaSelect = document.getElementById("areaSelect");
+    const taxiCount = document.getElementById("taxiCount");
+    const forecast = document.getElementById("forecast");
+    const timestamp = document.getElementById("timestamp");
+    const prediction = document.getElementById("prediction");
+    const modelStatus = document.getElementById("modelStatus");
+    const predictionDetails = document.getElementById("predictionDetails");
+    const historyBody = document.getElementById("historyBody");
+    const currentWeatherAxis = document.getElementById("currentWeatherAxis");
+    const forecastWeatherAxis = document.getElementById("forecastWeatherAxis");
+    const refreshButton = document.getElementById("refreshButton");
+    const predictButton = document.getElementById("predictButton");
+    const reloadModelButton = document.getElementById("reloadModelButton");
+    let taxiChart;
+    let isRefreshingLiveData = false;
+
+    async function fetchJson(url, options = {}) {
+      const response = await fetch(url, options);
+      if (!response.ok) throw new Error(await response.text());
+      return response.json();
+    }
+
+    function renderModelStatus(info) {
+      const modelType = info.model_type || "Unknown model";
+      const version = info.model_version ? `v${info.model_version}` : "no version";
+      modelStatus.textContent = `${modelType} / ${version}`;
+    }
+
+    async function loadModelInfo() {
+      try {
+        const info = await fetchJson("/api/model/info");
+        renderModelStatus(info);
+        return info;
+      } catch (error) {
+        console.error(error);
+        modelStatus.textContent = "Model info error";
+        return null;
+      }
+    }
+
+    async function loadAreas() {
+      const areas = await fetchJson("/api/areas");
+      areaSelect.innerHTML = areas.map(
+        row => `<option value="${row.planning_area}">${row.planning_area}</option>`
+      ).join("");
+      areaSelect.value = areas.some(row => row.planning_area === "ANG MO KIO")
+        ? "ANG MO KIO"
+        : areas[0].planning_area;
+    }
+
+    async function loadDashboard() {
+      const selectedArea = areaSelect.value;
+      const [taxiRows, weatherRows, historyRows, comparisonRows] = await Promise.all([
+        fetchJson("/api/taxi/current"),
+        fetchJson("/api/weather/current"),
+        fetchJson(`/api/taxi/timeseries?area=${encodeURIComponent(selectedArea)}`),
+        fetchJson(`/api/model/prediction-comparison?area=${encodeURIComponent(selectedArea)}&limit=8`)
+      ]);
+
+      const taxi = taxiRows.find(row => row.planning_area === selectedArea);
+      const weather = weatherRows.find(row => row.area === selectedArea);
+      const history = historyRows.slice(-30);
+
+      taxiCount.textContent = taxi ? taxi.available_taxi_count : "-";
+      forecast.textContent = weather ? weather.forecast : "-";
+      timestamp.textContent = taxi ? taxi.api_timestamp : "-";
+
+      historyBody.innerHTML = history.slice(-10).reverse().map(row => `
+        <tr>
+          <td>${row.api_timestamp}</td>
+          <td>${row.available_taxi_count}</td>
+          <td>${row.current_forecast || "-"}</td>
+          <td>${row.forecast_2h || "-"}</td>
+        </tr>
+      `).join("");
+
+      renderWeatherAxis(history);
+
+      const chartPoints = [
+        ...history.map(row => ({
+          timestamp: row.api_timestamp,
+          actual: row.available_taxi_count,
+          predicted: null,
+          revealedActual: null,
+        })),
+        ...comparisonRows.map(row => ({
+          timestamp: row.target_timestamp,
+          actual: null,
+          predicted: row.predicted_taxi_count_2h,
+          revealedActual: row.actual_taxi_count,
+        }))
+      ].sort((left, right) => new Date(left.timestamp) - new Date(right.timestamp));
+
+      const labels = [];
+      const seenLabels = new Set();
+      chartPoints.forEach(point => {
+        if (!seenLabels.has(point.timestamp)) {
+          seenLabels.add(point.timestamp);
+          labels.push(point.timestamp);
+        }
+      });
+
+      const actualByTime = new Map();
+      const predictedByTime = new Map();
+      const revealedActualByTime = new Map();
+      chartPoints.forEach(point => {
+        if (point.actual !== null && point.actual !== undefined) {
+          actualByTime.set(point.timestamp, point.actual);
+        }
+        if (point.predicted !== null && point.predicted !== undefined) {
+          predictedByTime.set(point.timestamp, point.predicted);
+        }
+        if (point.revealedActual !== null && point.revealedActual !== undefined) {
+          revealedActualByTime.set(point.timestamp, point.revealedActual);
+        }
+      });
+
+      const values = labels.map(label => actualByTime.get(label) ?? null);
+      const predictedValues = labels.map(label => predictedByTime.get(label) ?? null);
+      const revealedActualValues = labels.map(label => revealedActualByTime.get(label) ?? null);
+      if (taxiChart) taxiChart.destroy();
+      taxiChart = new Chart(document.getElementById("taxiChart"), {
+        type: "line",
+        data: {
+          labels,
+          datasets: [{
+            label: `${selectedArea} taxi count`,
+            data: values,
+            borderColor: "#2563eb",
+            backgroundColor: "rgba(37, 99, 235, 0.12)",
+            tension: 0.25,
+            fill: true
+          }, {
+            label: "2h prediction written now",
+            data: predictedValues,
+            borderColor: "#b45309",
+            backgroundColor: "#b45309",
+            pointRadius: 6,
+            pointHoverRadius: 7,
+            showLine: false
+          }, {
+            label: "Actual value when target time arrives",
+            data: revealedActualValues,
+            borderColor: "#0f766e",
+            backgroundColor: "#0f766e",
+            pointRadius: 5,
+            pointHoverRadius: 6,
+            showLine: false
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          scales: {
+            x: {
+              ticks: {
+                maxTicksLimit: 8,
+                callback: function(value) {
+                  return shortTime(this.getLabelForValue(value));
+                }
+              }
+            }
+          },
+          plugins: {
+            tooltip: {
+              callbacks: {
+                title: items => items.length ? items[0].label : "",
+              }
+            }
+          }
+        }
+      });
+    }
+
+    function shortTime(value) {
+      const date = new Date(value);
+      if (Number.isNaN(date.getTime())) return value;
+      return date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+    }
+
+    function renderWeatherAxis(history) {
+      const points = history.filter((_, index) => {
+        const step = Math.max(1, Math.floor(history.length / 6));
+        return index % step === 0;
+      }).slice(-6);
+
+      currentWeatherAxis.innerHTML = points.map(row => `
+        <div class="weather-chip">
+          <span>${shortTime(row.api_timestamp)}</span>
+          <strong>${row.current_forecast || "-"}</strong>
+        </div>
+      `).join("");
+
+      forecastWeatherAxis.innerHTML = points.map(row => `
+        <div class="weather-chip">
+          <span>${shortTime(row.api_timestamp)}</span>
+          <strong>${row.forecast_2h || "-"}</strong>
+        </div>
+      `).join("");
+    }
+
+    async function loadPrediction() {
+      prediction.textContent = "...";
+      predictionDetails.textContent = "Calling /api/model/predict-2h ...";
+      try {
+        const selectedArea = areaSelect.value;
+        const result = await fetchJson(
+          `/api/model/predict-2h?area=${encodeURIComponent(selectedArea)}`
+        );
+        prediction.textContent = result.predicted_taxi_count_2h;
+        predictionDetails.textContent = JSON.stringify(result, null, 2);
+        loadDashboard();
+      } catch (error) {
+        console.error(error);
+        prediction.textContent = "Error";
+        predictionDetails.textContent =
+          "Prediction failed. Check that MLflow is running and champion model exists.";
+      }
+    }
+
+    async function reloadChampionModel() {
+      reloadModelButton.disabled = true;
+      const originalText = reloadModelButton.textContent;
+      reloadModelButton.textContent = "Reloading model...";
+      predictionDetails.textContent = "Calling /api/model/reload ...";
+      try {
+        const result = await fetchJson("/api/model/reload", { method: "POST" });
+        renderModelStatus(result);
+        predictionDetails.textContent = JSON.stringify(result, null, 2);
+        prediction.textContent = "-";
+      } catch (error) {
+        console.error(error);
+        predictionDetails.textContent =
+          "Model reload failed. Check that MLflow is running and the champion alias exists.";
+      } finally {
+        reloadModelButton.disabled = false;
+        reloadModelButton.textContent = originalText;
+      }
+    }
+
+    async function refreshLiveData(showDetails = true) {
+      if (isRefreshingLiveData) return;
+      isRefreshingLiveData = true;
+      refreshButton.disabled = true;
+      const originalText = refreshButton.textContent;
+      refreshButton.textContent = "Collecting live data...";
+      if (showDetails) {
+        predictionDetails.textContent = "Calling /api/data/refresh ...";
+      }
+      try {
+        const result = await fetchJson("/api/data/refresh", { method: "POST" });
+        await loadDashboard();
+        prediction.textContent = "-";
+        if (showDetails) {
+          predictionDetails.textContent = JSON.stringify(result, null, 2);
+        }
+        refreshButton.textContent = "Data refreshed";
+        setTimeout(() => {
+          refreshButton.textContent = originalText;
+        }, 1500);
+      } catch (error) {
+        console.error(error);
+        if (showDetails) {
+          predictionDetails.textContent =
+            "Live data refresh failed. Check the FastAPI terminal.";
+        }
+        refreshButton.textContent = "Refresh failed";
+      } finally {
+        refreshButton.disabled = false;
+        isRefreshingLiveData = false;
+      }
+    }
+
+    refreshButton.addEventListener("click", () => refreshLiveData(true));
+    predictButton.addEventListener("click", loadPrediction);
+    reloadModelButton.addEventListener("click", reloadChampionModel);
+    areaSelect.addEventListener("change", () => {
+      prediction.textContent = "-";
+      predictionDetails.textContent = "Click the prediction button to call the model.";
+      loadDashboard();
+    });
+    setInterval(() => refreshLiveData(false), 120000);
+
+    loadModelInfo();
+    loadAreas().then(loadDashboard).catch(error => {
+      console.error(error);
+      alert("Dashboard failed to load. Check the FastAPI terminal.");
+    });
+  </script>
+</body>
+</html>
