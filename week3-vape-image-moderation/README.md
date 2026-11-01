@@ -19,23 +19,23 @@ Demo mode needs no API keys. It downloads the two trained checkpoints, `manifest
 
 ## Results
 
-> **Not trained yet.** Run `TRAIN = True` once (see below), and these numbers will be filled in from `metrics.json`. The notebook also shows the table in demo mode. No numbers have been recorded so far.
-
-Test set (held out; each model scored once):
+Recorded from the training run (`metrics.json`): 240 held-out test images (120 vape, 120 not vape), 5 epochs per configuration, each model scored once on the test set.
 
 | Config | Val acc | Test acc | Vape precision | Vape recall | Vape F1 |
 |---|---|---|---|---|---|
-| resnet_full | | | | | |
-| resnet_head | | | | | |
-| vit_full | | | | | |
-| vit_head | | | | | |
+| resnet_full (ResNet-18, full fine-tune) | 0.988 | 0.988 | 0.983 | 0.992 | 0.988 |
+| resnet_head (ResNet-18, head only) | 0.958 | 0.979 | 0.967 | 0.992 | 0.979 |
+| vit_full (ViT-B/16, full fine-tune) | 0.983 | 0.992 | 0.984 | **1.000** | 0.992 |
+| **vit_head** (ViT-B/16, head only) | **0.992** | 0.992 | 0.984 | **1.000** | 0.992 |
 
-The champion is chosen on validation only. Its test results at the default and tuned thresholds:
+The champion, **vit_head**, was chosen on validation only. Its test results at the default and tuned thresholds:
 
 | Threshold | Accuracy | Vape precision | Vape recall | Confusion [tn fp fn tp] |
 |---|---|---|---|---|
-| 0.50 | | | | |
-| tuned (target recall ≥ 0.99 on val) | | | | |
+| 0.50 | 0.992 | 0.984 | 1.000 | [118, 2, 0, 120] |
+| 0.495 (tuned for vape recall ≥ 0.99 on val) | 0.992 | 0.984 | 1.000 | [118, 2, 0, 120] |
+
+All 120 test vapes were caught; 2 of 120 look-alikes were wrongly sent to review. Training only the classification head on ViT matched the full fine-tune, so the cheaper option is enough here. The demo uses vit_head (threshold 0.49) and resnet_full (threshold 0.67) side by side. With only 240 test images, one error moves accuracy by about 0.4 points, so differences between the top three configurations are within noise.
 
 **Why v2 exists.** In v1, every configuration scored about 100%, because the negatives were easy 160-px Imagenette photos. v2 adds harder negatives so the comparison means something. Accuracy is therefore expected to come in below v1's ~100%.
 
