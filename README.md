@@ -5,8 +5,8 @@ Eight weeks of full-time applied AI training at the Singapore Institute of Techn
 | Week | Project | Area | Headline result | Live demo |
 |---|---|---|---|---|
 | 1 | [HDB resale price prediction](week1-hdb-resale-price-prediction/) | ML foundations | R² 0.903 on a 2025–26 hold-out | ✅ CPU, ~4 min |
-| 2 | [Real-time taxi availability forecasting (Singapore)](week2-realtime-taxi-forecasting/) | Data engineering & MLOps | R² ≈ 0.75, MAE ≈ 20 taxis | — (Docker stack, no Colab) |
-| 3 | [Vape image moderation for marketplace listings](week3-vape-image-moderation/) | Deep learning, transfer learning | ResNet-18 vs ViT-B/16, recall-targeted threshold | ✅ T4, ~4 min |
+| 2 | [Real-time taxi availability forecasting (Singapore)](week2-realtime-taxi-forecasting/) | Data engineering & MLOps | Live GPS → planning areas; MLP 2-h forecast MAE 18.75 taxis | ✅ CPU, ~3 min |
+| 3 | [Vape image moderation for marketplace listings](week3-vape-image-moderation/) | Deep learning, transfer learning | ViT-B/16 caught 120/120 test vapes, 99.2% accuracy | ✅ T4, ~4 min |
 | 4 | [SmartCart: photo of groceries → priced receipt](week4-smartcart-vision/) | Computer vision | YOLO11n mAP50-95 0.924 · ONNX int8 3.9× smaller | ✅ T4, ~4 min |
 | 5 | [ElderShield closed-book LLM (QLoRA SFT + DPO)](week5-llm-finetune-abstention/) | LLM fine-tuning | Fact recall 37% → 63%, warm tone 23% → 100% | ✅ T4, ~6 min |
 | 6 | [Red-teaming and hardening a RAG chatbot](week6-rag-red-teaming/) | AI security & governance | Attack success 83% → 0% | ✅ T4, ~7 min |
